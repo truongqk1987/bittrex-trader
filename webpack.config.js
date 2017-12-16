@@ -14,8 +14,25 @@ module.exports = {
   module: {
     loaders: [
       { test: /\.js$/, loader: 'babel-loader', exclude: /node_modules/ },
-      { test: /\.jsx$/, loader: 'babel-loader', exclude: /node_modules/ }
+      { test: /\.jsx$/, loader: 'babel-loader', exclude: /node_modules/ },
+      { test: /\.json$/, loader: 'json-loader' },
+      {
+        test: /\.css$/,
+        loader: 'style-loader!css-loader',
+        include: path.join(__dirname, 'client')
+      },
+      {
+        test: /\.css$/,
+        loader: 'style-loader!css-loader',
+        include: path.join(__dirname, 'node_modules')
+      }
     ]
   },
-  plugins: [HtmlWebpackPluginConfig]
+  plugins: [HtmlWebpackPluginConfig],
+  node: {
+    console: true,
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty'
+  }
 }

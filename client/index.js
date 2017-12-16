@@ -1,76 +1,79 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import MyMapComponent from './components/App.js';
+import axios from 'axios';
+import Select from 'react-select';
+import moment from 'moment';
+import 'react-select/dist/react-select.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import MarketInfo from './components/MarketInfo';
 
-class MyFancyComponent extends React.PureComponent {
-  constructor(props) {
-    super(props);
+const APIKEY = '';
+const APISECRET = '';
+
+
+class BittrexComponent extends React.Component {
+  constructor() {
+    super();
     this.state = {
-      isMarkerShown: false
-    }
-    this.handleMarkerClick = this.handleMarkerClick.bind(this);
-    this.showPolygonGeo = this.showPolygonGeo.bind(this);
-    this.onMyPolygonCompleteResult = this.onMyPolygonCompleteResult.bind(this);
+      marketList: null,
+      selectedMarketList: null,
+    };
+    this.onSelectMarketListChange = this.onSelectMarketListChange.bind(this);
   }
 
   componentDidMount() {
-    this.delayedShowMarker()
-  }
-
-  delayedShowMarker() {
-    setTimeout(() => {
-      this.setState({ isMarkerShown: true })
-    }, 3000)
-  }
-
-  handleMarkerClick() {
-    this.setState({ isMarkerShown: false })
-    this.delayedShowMarker()
-  }
-
-  showPolygonGeo(title, polygon) {
-    console.log('---------' + title + '-----------');
-    if (polygon) {
-      polygon.getPath().getArray().forEach(function(point) {
-        console.log('lat: ' + point.lat() + ' - ' + 'lng: ' + point.lng());
-      })  
-    }
-    
-  }
-
-  onMyPolygonCompleteResult(polygon) {
-    var self = this;
-    polygon.getPaths().forEach(function (path, index) {
-
-      google.maps.event.addListener(path, 'insert_at', function () {
-        self.showPolygonGeo('insert-at', polygon);
-      });
-
-      google.maps.event.addListener(path, 'remove_at', function () {
-        self.showPolygonGeo('remove-at', polygon);
-      });
+    const self = this;
+    axios.get('https://bittrex.com/api/v1.1/public/getmarkets ')
+    .then(function (response) {
+      let marketList = response.data.result;
+      marketList = marketList.map((market) => {
+        const combinedName = market.MarketCurrencyLong + ' (' + market.MarketCurrency + ')';
+        market['combinedName'] = combinedName;
+        return market
+      })
+      self.setState({marketList});
+    })
+    .catch(function (error) {
+      console.log(error);
     });
-
-    google.maps.event.addListener(polygon, 'dragend', function () {
-      self.showPolygonGeo('drag-end', polygon);
-    });
-
   }
 
+  onSelectMarketListChange(selectedMarketList) {
+    this.setState({selectedMarketList})
+  }
 
   render() {
-    return (
-      <MyMapComponent
-        isMarkerShown={this.state.isMarkerShown}
-        onMarkerClick={this.handleMarkerClick}
-        onMyPolygonComplete={this.onMyPolygonCompleteResult}
-      />
-    )
+    const {marketList, selectedMarketList} = this.state;
+    let render = <div className="loader"></div>;
+    if (marketList) {
+      render = (
+        <div>
+          <Select
+            onChange={this.onSelectMarketListChange}
+            value={this.state.selectedMarketList}
+            valueKey='MarketCurrency'
+            labelKey='combinedName'
+            options={marketList}
+            multi
+          />
+          <div className="card-container">
+            {selectedMarketList && selectedMarketList.map((selectedMarket, index) => {
+              return (
+                <MarketInfo key={index} market={selectedMarket}/>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+    return render;
   }
 }
 
+const BittrexTrader = props => <BittrexComponent/>
+
 ReactDOM.render(
-  <MyFancyComponent
+  <BittrexTrader
   />
 
   , document.getElementById('root'));
