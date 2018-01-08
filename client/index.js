@@ -7,8 +7,8 @@ import 'react-select/dist/react-select.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import MarketInfo from './components/MarketInfo';
 
-const APIKEY = '';
-const APISECRET = '';
+const APIKEY = '4a8f293a18684f72ba7b6881ba9792fc';
+const APISECRET = 'b379b37f637c4658b22f04ed36643448';
 
 
 class BittrexComponent extends React.Component {
@@ -30,6 +30,9 @@ class BittrexComponent extends React.Component {
         const combinedName = market.MarketCurrencyLong + ' (' + market.MarketCurrency + ')';
         market['combinedName'] = combinedName;
         return market
+      })
+      marketList = marketList.filter((market) => {
+        return market.BaseCurrency === 'BTC';
       })
       self.setState({marketList});
     })
